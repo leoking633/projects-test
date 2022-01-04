@@ -1,23 +1,38 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
 
 public class Test {
+
+
     public static void main(String[] args) {
-       List<Integer> list = Arrays.asList(new Integer[]{1,2,3,4,5,6});
-       int count = 4;
-       List<List<Integer>> groups = new ArrayList<>();
-       for(int i = 0;i<count;i++){
-           List<Integer> l = new ArrayList<>();
-           groups.add(l);
-       }
-       for(int i=0;i<list.size();i++){
-           List<Integer> l = groups.get((i%count));
-           l.add(list.get(i));
-       }
-       groups.forEach(e->{
-           System.out.println(e);
-       });
+        List<Student> list = new ArrayList<>();
+        Student s = new Student();
+        s.setId(1);
+        s.setName("leo");
+        Student s1 = new Student();
+        s1.setId(2);
+        s1.setName("king");
+        list.add(s1);
+        list.add(s);
+        List<CompletableFuture<Student>> futrues = list.stream().map(e->CompletableFuture.completedFuture(e).thenApplyAsync(ss->{
+            ss.setName(ss.getName()+"hhhh");
+            return ss;
+        })).collect(Collectors.toList());
+        CompletableFuture.allOf(futrues.toArray(new CompletableFuture[futrues.size()])).join();
+        futrues.forEach(e->{
+            try {
+                Student st = e.get();
+                System.out.println(st.getName());
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            } catch (ExecutionException ex) {
+                ex.printStackTrace();
+            }
+        });
     }
 
 }
